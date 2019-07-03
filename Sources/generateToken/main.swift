@@ -19,18 +19,18 @@ func printTokenContent(_ token: String) {
 	""")
 }
 
-func generateToken(teamId: String, keyId: String, keyFileUrl: URL, expiryDuration: Int = 60 * 60 * 24) throws -> String {
+func generateToken(teamId: String, keyId: String, keyFileUrl: URL, expiryDuration: TimeInterval = 60 * 60 * 24) throws -> String {
 
-	let nowDate = Int(Date().timeIntervalSince1970.rounded())
+	let nowDate = Date()
 	let myHeader = Header(kid: keyId)
 
 	struct MyClaims: Claims {
 		let iss: String
-		let iat: Int
-		let exp: Int
+		let iat: Date?
+		let exp: Date?
 	}
 
-	let myClaims = MyClaims(iss: teamId, iat: nowDate, exp: nowDate + expiryDuration * 60)
+	let myClaims = MyClaims(iss: teamId, iat: nowDate, exp: nowDate.addingTimeInterval(expiryDuration * 60))
 	var myJWT = SwiftJWT.JWT(header: myHeader, claims: myClaims)
 
 	let token = try myJWT.sign(using: .es256(privateKey: try String(contentsOf: keyFileUrl).data(using: .utf8)!))
